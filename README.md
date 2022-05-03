@@ -1,2 +1,2 @@
-# anthonyflix_dev
+# anthonyflix
 This is the master branch

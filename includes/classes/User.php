@@ -33,4 +33,21 @@ class User
     public function getIsSubscribed(){
         return $this->sqlData["isSubscribed"];
     }
+
+    public function getUsername(){
+        return $this->sqlData["username"];
+    }
+
+    public function setIsSubscribed($value){
+        $query = $this->con->prepare("UPDATE users SET isSubscribed=:isSubscribed
+                                    WHERE username=:un");
+        $query->bindvalue(":isSubscribed", $value);
+        $query->bindvalue(":un", $this->getUsername());
+        if($query->execute()){
+            // update sqlData array with the latest value from the table
+            $this->sqlData["isSubscribed"] = $value;
+            return true;
+        }
+        return false;
+    }
 }

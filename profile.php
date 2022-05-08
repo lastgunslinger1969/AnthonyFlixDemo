@@ -13,6 +13,8 @@ require_once ("includes/classes/FormSanitizer.php");
 require_once ("includes/classes/Constants.php");
 require_once("includes/classes/BillingDetails.php");
 
+$user = new User($con, $userLoggedIn);
+
 $detailsMessage = "";
 $passwordMessage = "";
 $subscriptionMessage = "";
@@ -53,13 +55,28 @@ if(isset($_POST["savePasswordButton"])){
 if (isset($_GET['success']) && $_GET['success'] == 'true') {
     $token = $_GET['token'];
     $agreement = new Agreement();
+    $subscriptionMessage = "<div class='alertError'>Something went wrong!</div>";
 
     try {
-        // Execute agreement
-        $agreement->execute($token, $apiContext);
+        // on a page refresh after successful token creation stop duplicate rows being inserted on the table
+        $queryCheck = $con->prepare("SELECT * FROM billingDetails
+                                        WHERE username=:username AND token=:token");
+        $queryCheck->bindvalue(":username", $userLoggedIn);
+        $queryCheck->bindvalue(":token", $token);
+        $queryCheck->execute();
+        if($queryCheck->rowCount() == 0) {
 
-        $result = BillingDetails::insertDetails($con, $agreement, $token, $userLoggedIn);
-        // Update user's account status
+            // Execute agreement for new user
+            $agreement->execute($token, $apiContext);
+            // Insert new user
+            $result = BillingDetails::insertDetails($con, $agreement, $token, $userLoggedIn);
+            // combine 2 boolean checks
+            $result = $result && $user->setIsSubscribed(1);
+
+            if($result){
+                $subscriptionMessage = "<div class='alertSuccess'>Your're all signed up!</div>";
+            }
+        }
 
     } catch (PayPal\Exception\PayPalConnectionException $ex) {
         echo $ex->getCode();
@@ -78,7 +95,7 @@ else if (isset($_GET['success']) && $_GET['success'] == 'false') {
         <form method="POST">
             <h2>User details</h2>
             <?php
-            $user = new User($con, $userLoggedIn);
+
             $firstName = isset($_POST["firstName"]) ? $_POST["firstName"] : $user->getFirstName();
             $lastName = isset($_POST["lastName"]) ? $_POST["lastName"] : $user->getLastName();
             $email = isset($_POST["email"]) ? $_POST["email"] : $user->getEmail();

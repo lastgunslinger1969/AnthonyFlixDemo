@@ -2,6 +2,8 @@
 
 namespace classes;
 
+use PDO;
+
 class EntityProvider
 {
     public static function getEntities($con,$categoryId,$limit){
@@ -18,11 +20,11 @@ class EntityProvider
             $query->bindvalue(":categoryId", $categoryId);
         }
 
-        $query->bindvalue(":limit", $limit,\PDO::PARAM_INT);
+        $query->bindvalue(":limit", $limit, PDO::PARAM_INT);
         $query->execute();
 
         $result = array();
-        while($row = $query->fetch(\PDO::FETCH_ASSOC)){
+        while($row = $query->fetch(PDO::FETCH_ASSOC)){
             $result[] = new Entity($con,$row);
         }
             return $result;
@@ -43,11 +45,11 @@ class EntityProvider
             $query->bindvalue(":categoryId", $categoryId);
         }
 
-        $query->bindvalue(":limit", $limit,\PDO::PARAM_INT);
+        $query->bindvalue(":limit", $limit, PDO::PARAM_INT);
         $query->execute();
 
         $result = array();
-        while($row = $query->fetch(\PDO::FETCH_ASSOC)){
+        while($row = $query->fetch(PDO::FETCH_ASSOC)){
             $result[] = new Entity($con,$row["id"]);
         }
         return $result;
@@ -68,13 +70,31 @@ class EntityProvider
             $query->bindvalue(":categoryId", $categoryId);
         }
 
-        $query->bindvalue(":limit", $limit,\PDO::PARAM_INT);
+        $query->bindvalue(":limit", $limit, PDO::PARAM_INT);
         $query->execute();
 
         $result = array();
-        while($row = $query->fetch(\PDO::FETCH_ASSOC)){
+        while($row = $query->fetch(PDO::FETCH_ASSOC)){
             $result[] = new Entity($con,$row["id"]);
         }
         return $result;
     }
+
+    public static function getSearchEntities($con, $term){
+
+        $sql = "SELECT * FROM entities 
+                WHERE name LIKE CONCAT('%', :term, '%') LIMIT 30";
+
+        $query = $con->prepare($sql);
+
+        $query->bindvalue(":term", $term );
+        $query->execute();
+
+        $result = array();
+        while($row = $query->fetch(PDO::FETCH_ASSOC)){
+            $result[] = new Entity($con,$row);
+        }
+        return $result;
+    }
+
 }

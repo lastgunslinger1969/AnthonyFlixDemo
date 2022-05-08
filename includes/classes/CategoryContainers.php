@@ -88,10 +88,8 @@ class CategoryContainers
                     <a href='category.php?id=$categoryID'>
                         <h3>$title</h3>
                     </a>
-                        <div class='entities'>$entitiesHtml</div>
+                        <div class='entities'>$entitiesHtml
+                        </div>
                 </div>";
-
-
-
     }
 }
